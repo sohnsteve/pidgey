@@ -40,7 +40,6 @@ const port = 0;
 		  req.session.coords.push(lat);
 		  req.session.coords.push(lon);
       res.writeHead(200, { 'Content-Type': 'text/plain'});
-      res.write("lat =" + lat);
       res.end("RECEIVED");
 	  }
 	  else
@@ -53,17 +52,17 @@ const port = 0;
 				  {
 					  res.end("Error " + err);
 				  }
-				  res.write(data);
 				  var arr = data.toString().split(" ");
 				  var raw = arr[3];
 				  var ip_str = raw.split(":");
 				  var h = ip_str[0];
 				  var p = ip_str[1];
           var opt = {host:h, port:p};
+          let old_lat = req.session.coords[0];
+          let old_lon = req.session.coords[1];
 				  var client = net.createConnection(opt, () =>
 				  {
-            res.write("The lat is " + req.session.coords[0] + " and the lon is " + req.session.coords[1]);
-            client.write(req.session.coords[0] + " " + req.query.lat + " " + req.session.coords[1] + " " + req.query.lon);
+            client.write(old_lat + " " + lat + " " + old_lon + " " + lon + "\n");
           });
           let incoming = '';
           client.on('data', (stuff) =>
@@ -73,9 +72,10 @@ const port = 0;
           });
           client.on('end', () =>
           {
-            res.end("The distance is " + incoming);
             req.session.coords[0] = lat;
-		        req.session.coords[1] = lon;
+            req.session.coords[1] = lon;
+            res.end("The distance from (" + old_lat + "," + old_lon + ")"
+            + " to (" + lat + "," + lon + ") is " + incoming);
           });
          /*
           var client = require('net').Socket();
