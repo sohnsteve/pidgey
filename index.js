@@ -77,19 +77,6 @@ const port = 0;
             res.end("The distance from (" + old_lat + "," + old_lon + ")"
             + " to (" + lat + "," + lon + ") is " + incoming);
           });
-         /*
-          var client = require('net').Socket();
-          client.connect(p, h);
-          client.on('connect', () =>
-          {
-            client.write(req.session.coords[0] + " " + req.query.lat + " " + req.session.coords[1] + " " + req.query.lon);
-          });
-          client.on('data', (data) =>
-          {
-            res.end("DATA: " + data);
-            client.end();
-          });
-          */
 			  });
 	  }
   });  
@@ -133,6 +120,14 @@ const port = 0;
     }
   });
 
+  /*
+  Parameters:
+  <from>: the origin address
+  <to>: the destination address
+  Sample addresses: (Use verbatim, URLs do not take spaces)
+  4700+Keele+St,+Toronto,+ON+M3J1P3
+  220+Yonge+St,+Toronto,+ON+M5B2H1
+  */
   app.use('/Trip', function(req, res)
   {
     let f = req.query.from;
@@ -147,9 +142,25 @@ const port = 0;
       });
       resp.on('end', () => 
       { 
-        res.writeHead(200, { 'Content-Type': 'application/json'});
-			  res.write(JSON.stringify(data));
-		  	res.end();
+        res.writeHead(200, { 'Content-Type': 'text/plain'});
+        data = JSON.parse(data);
+
+          //extracting back the destination and origin
+        var dest = (data.destination_addresses)[0];
+        var org = (data.origin_addresses)[0];
+
+          //drilling down to the distance and duration
+        var rows = data.rows;
+        var elements = rows[0];
+        var elements_ = elements.elements;
+        var elements0 = elements_[0];
+        var distance = elements0.distance;
+        var d_text = distance.text;
+        var duration = elements0.duration;
+        var dur_text = duration.text;
+
+        res.end("The distance from: <" + org + "> to: <" + dest
+        + "> is: " + d_text + " and will take: " + dur_text);
       })
     }).on("error", (err) => { res.end(err) });
   });
