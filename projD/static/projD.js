@@ -1,3 +1,6 @@
+const INDEX_URL = 'http://red.eecs.yorku.ca:';
+const PORT = '';
+
 function init()
 {
    hideAll();
@@ -17,15 +20,30 @@ function show(v)
 {
    let div = document.getElementById(v); 
    div.style.display = "block";
-   if (v == "logView") doAjax(PROV_URL, logPopulate);
+   if (v == "logView") doAjax(INDEX_URL + PORT + '/Catalog', logPopulate);
+   else if (v == "cateView")
+   {
+       //hideAll();
+       doAjax(INDEX_URL + PORT + '/Category?id=', catePopulate);
+   }
 }
 
 function logPopulate(res)
 {
    let ar = JSON.parse(res);
    let s = "";
+   ar.forEach( (e, i) => { s += "<li>" + e.name + 
+   " <button onclick=\"javascript:show(cateView);\">Select</button></li>"; });
+   document.getElementById("logList").innerHTML = s;
+
+}
+
+function catePopulate(res)
+{
+   let ar = JSON.parse(res);
+   let s = "";
    ar.forEach( (e, i) => { s += "<li>" + e.name + "</li>"; });
-   document.getElementById("provList").innerHTML = s;
+   document.getElementById("cateList").innerHTML = s;
 
 }
 

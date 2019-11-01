@@ -63,13 +63,16 @@ const port = 0;
 				  var client = net.createConnection(opt, () =>
 				  {
             client.write(old_lat + " " + lat + " " + old_lon + " " + lon + "\n");
+            client.end();
           });
-          let incoming = '';
           client.on('data', (stuff) =>
           {
-              incoming += stuff;
-              client.end();
+            req.session.coords[0] = lat;
+            req.session.coords[1] = lon;
+            res.end("The distance from (" + old_lat + "," + old_lon + ")"
+            + " to (" + lat + "," + lon + ") is " + stuff);
           });
+          /*
           client.on('end', () =>
           {
             req.session.coords[0] = lat;
@@ -77,6 +80,7 @@ const port = 0;
             res.end("The distance from (" + old_lat + "," + old_lon + ")"
             + " to (" + lat + "," + lon + ") is " + incoming);
           });
+          */
 			  });
 	  }
   });  
@@ -91,7 +95,10 @@ const port = 0;
       {
 		    if (err == null)
 		    {
-          res.writeHead(200, { 'Content-Type': 'application/json'});
+          res.writeHead(200, { 
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+          });
 			    res.write(JSON.stringify(rows));
 		  	  res.end();
 		    }
@@ -108,7 +115,10 @@ const port = 0;
       {
 		    if (err == null)
 		    {
-          res.writeHead(200, { 'Content-Type': 'application/json'});
+          res.writeHead(200, { 
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+          });
 			    res.write(JSON.stringify(rows));
 		  	  res.end();
 		    }
@@ -237,4 +247,8 @@ const port = 0;
     var host = server.address().address;
     var port = server.address().port;
     console.log('Listening at http://%s:%d', host, port);
+    let fileName = home + '/4413/ctrl/projCindex.txt';
+    fs.writeFile(fileName, port, function (err) {
+      if (err) throw err;
+    });
   });
