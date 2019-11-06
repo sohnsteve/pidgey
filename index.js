@@ -39,13 +39,19 @@ const port = 0;
 		  req.session.coords = [];
 		  req.session.coords.push(lat);
 		  req.session.coords.push(lon);
-      res.writeHead(200, { 'Content-Type': 'text/plain'});
+      res.writeHead(200, { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      });
       res.end("RECEIVED");
 	  }
 	  else
 	  {
 		  //Must open TCP connection to Geo.java
-		  res.writeHead(200, { 'Content-Type': 'text/plain'});
+		  res.writeHead(200, { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      });
 		  fs.readFile(home + '/4413/ctrl/geo.txt', (err, data) =>
 			  {
 				  if (err)
@@ -152,9 +158,15 @@ const port = 0;
       });
       resp.on('end', () => 
       { 
-        res.writeHead(200, { 'Content-Type': 'text/plain'});
+        res.writeHead(200, { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
+        });
         data = JSON.parse(data);
 
+          //the below is quoted out as it displays the output as
+          //a string as opposed to a JSON
+        /*
           //extracting back the destination and origin
         var dest = (data.destination_addresses)[0];
         var org = (data.origin_addresses)[0];
@@ -171,6 +183,8 @@ const port = 0;
 
         res.end("The distance from: <" + org + "> to: <" + dest
         + "> is: " + d_text + " and will take: " + dur_text);
+        */
+       res.end(JSON.stringify(data));
       })
     }).on("error", (err) => { res.end(err) });
   });
@@ -183,7 +197,32 @@ const port = 0;
       {
 		    if (err == null)
 		    {
-          res.writeHead(200, { 'Content-Type': 'application/json'});
+          res.writeHead(200, { 
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+          });
+			    res.write(JSON.stringify(rows));
+		  	  res.end();
+		    }
+		    else
+		    {
+		  	  res.end("Error " + err);
+		    }
+      });
+  });
+
+  app.use('/Quote', function(req, res)
+  {
+    let id = req.query.id;
+    let query = "select id, name, description, msrp from product where id = ?";
+      db.all(query, [id], (err, rows) =>
+      {
+		    if (err == null)
+		    {
+          res.writeHead(200, { 
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+          });
 			    res.write(JSON.stringify(rows));
 		  	  res.end();
 		    }
@@ -205,7 +244,10 @@ const port = 0;
     let cart = req.session.cart;
     if (item == null) //item not provided by client, return existing cart
     {
-      res.writeHead(200, { 'Content-Type': 'application/json'});
+      res.writeHead(200, { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      });
 			res.end(JSON.stringify(cart));
     }
       //negative quantity refers to item deletion from cart
@@ -236,7 +278,10 @@ const port = 0;
     else
     {
       req.session.cart.push(item);
-      res.writeHead(200, { 'Content-Type': 'application/json'});
+      res.writeHead(200, { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      });
 			res.end(JSON.stringify(cart));
     }
   });
