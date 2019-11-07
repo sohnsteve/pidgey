@@ -103,7 +103,8 @@ const port = 0;
 		    {
           res.writeHead(200, { 
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
+            'Access-Control-Allow-Credentials': 'true',
+            'Access-Control-Allow-Origin': req.get("origin")
           });
 			    res.write(JSON.stringify(rows));
 		  	  res.end();
@@ -121,9 +122,16 @@ const port = 0;
       {
 		    if (err == null)
 		    {
+          /*
           res.writeHead(200, { 
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*'
+          });
+          */
+          res.writeHead(200, { 
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Credentials': 'true',
+            'Access-Control-Allow-Origin': req.get("origin")
           });
 			    res.write(JSON.stringify(rows));
 		  	  res.end();
@@ -160,7 +168,8 @@ const port = 0;
       { 
         res.writeHead(200, { 
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
+          'Access-Control-Allow-Credentials': 'true',
+          'Access-Control-Allow-Origin': req.get("origin")
         });
         data = JSON.parse(data);
 
@@ -199,7 +208,8 @@ const port = 0;
 		    {
           res.writeHead(200, { 
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
+            'Access-Control-Allow-Credentials': 'true',
+            'Access-Control-Allow-Origin': req.get("origin")
           });
 			    res.write(JSON.stringify(rows));
 		  	  res.end();
@@ -221,7 +231,8 @@ const port = 0;
 		    {
           res.writeHead(200, { 
             'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
+            'Access-Control-Allow-Credentials': 'true',
+            'Access-Control-Allow-Origin': req.get("origin")
           });
 			    res.write(JSON.stringify(rows));
 		  	  res.end();
@@ -245,7 +256,8 @@ const port = 0;
     {
       res.writeHead(200, { 
         'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
+        'Access-Control-Allow-Credentials': 'true',
+        'Access-Control-Allow-Origin': req.get("origin")
       });
 			res.end(JSON.stringify(cart));
     }
@@ -253,7 +265,7 @@ const port = 0;
     {
       let item = JSON.parse(req.query.item);
         //if given item has qty < 0, then this item is marked for deletion
-      if (item.qty < 0)
+      if (item.qty < 1)
       {
         cart.forEach((val, index) =>
         {
@@ -276,29 +288,53 @@ const port = 0;
             cart = first.concat(second);
           }
         });
+        res.writeHead(200, { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Credentials': 'true',
+          'Access-Control-Allow-Origin': req.get("origin")
+        });
+        //res.end(JSON.parse(cart));
+        res.end(JSON.stringify(cart));
       }
       else
       {
         let ar_counter = 0;
+          //modifying quantity
         cart.forEach((val, index) =>
         {
           if (val.id == item.id)
           {
             val.qty = item.qty;
             ar_counter++;
+            res.writeHead(200, { 
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Credentials': 'true',
+              'Access-Control-Allow-Origin': req.get("origin")
+            });
+            //res.end(JSON.parse(cart));
+            res.end(JSON.stringify(cart));
           }
         });
+          //adding new item to cart
         if (ar_counter == 0)
         {
-          req.session.cart.push(item);
+          let query = "select name from product where id = ?";
+          let name = "";
+          db.all(query, [item.id], (err, rows) =>
+          {
+            name = rows[0].name;
+            item.name = name;
+            req.session.cart.push(item);
+            res.writeHead(200, { 
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Credentials': 'true',
+              'Access-Control-Allow-Origin': req.get("origin")
+            });
+            //res.end(JSON.parse(cart));
+            res.end(JSON.stringify(cart));
+          });
         }
       }
-      res.writeHead(200, { 
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      });
-      //res.end(JSON.parse(cart));
-      res.end(JSON.stringify(cart));
     }
   });
 

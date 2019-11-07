@@ -1,10 +1,9 @@
 const INDEX_URL = 'http://red.eecs.yorku.ca:';
-const PORT = '40830';
-var logJSON; //JSON with all categories
-var cateJSON; //JSON with all products of a category
-var prodJSON; //JSON with all details of a product
-var lastCode;
-var lastLabel;
+const PORT = '43476';
+var cateCode;
+var cateLabel;
+var prodCode;
+var prodLabel;
 
 function init()
 {
@@ -21,7 +20,7 @@ function hideAll()
     }
 }
 
-function show(v, code, label)
+function show(v, code, label, c_up)
 {
     hideAll();
     let div = document.getElementById(v); 
@@ -29,19 +28,28 @@ function show(v, code, label)
     if (v == "logView") doAjax(INDEX_URL + PORT + '/Catalog', logPopulate);
     else if (v == "cateView")
     {
-        lastCode = code;
-        lastLabel = label;
+        cateCode = code;
+        cateLabel = label;
         document.getElementById("cateName").innerHTML = label;
         doAjax(INDEX_URL + PORT + '/List?id=' + code, catePopulate);
     }
     else if (v == "prodView")
     {
+        prodCode = code;
+        //prodLabel = label;
         document.getElementById("backToCate").innerHTML =
-            "<a href='javascript:show(\"cateView\", \"" + lastCode + "\", \"" + lastLabel + "\")'> &#x2b05; Go Back to \"" + lastLabel + "\"</a>"
+            "<a href='javascript:show(\"cateView\", \"" + cateCode + "\", \"" + cateLabel + "\")'> &#x2b05; Go Back to " + cateLabel + "</a>";
        doAjax(INDEX_URL + PORT + '/Quote?id=' + code, prodPopulate);
     }
     else if (v == "cartView")
     {
+        document.getElementById("backToProd").innerHTML =
+            //"<a href='javascript:show(\"prodView\", \"" + prodCode + "\", \"" + prodLabel + "\")'> &#x2b05; Go Back to " + prodLabel + "</a>";
+            "<a href='javascript:show(\"prodView\", \"" + prodCode + "\")'> &#x2b05; Go Back to Product Details</a>";
+        if (c_up)
+        {
+            code.qty = document.getElementById(c_up).value;
+        }
        doAjax(INDEX_URL + PORT + '/Cart?item=' + JSON.stringify(code), cartPopulate);
     }
 }
@@ -51,8 +59,8 @@ function logPopulate(res)
 {
    logJSON = JSON.parse(res);
    let s = "";
-   logJSON.forEach( (e, i) => { s += "<li>" + e.name + 
-   " <button onclick=\'javascript:show(\"cateView\", \"" + e.id + "\", \"" + e.name + "\")'>Select " + e.name + "</button></li>"; });
+   logJSON.forEach( (e, i) => { s += "<li>" + e.name
+   + " <button onclick=\'javascript:show(\"cateView\", \"" + e.id + "\", \"" + e.name + "\")'>Select " + e.name + "</button></li>"; });
    document.getElementById("logList").innerHTML = s;
 }
 
@@ -61,8 +69,9 @@ function catePopulate(res)
 {
    let ar = JSON.parse(res);
    let s = "";
-   ar.forEach( (e, i) => { s += "<li>" + e.name + 
-   " <button onclick=\'javascript:show(\"prodView\", \"" + e.id + "\")'>Select " + e.name + "</button></li>"; });
+   ar.forEach( (e, i) => { s += "<li>" + e.name
+   //" <button onclick=\'javascript:show(\"prodView\", \"" + e.id + "\", \"" + e.name + "\")'>Select " + e.name + "</button></li>"; });
+   + " <button onclick=\'javascript:show(\"prodView\", \"" + e.id + "\")'>Select " + e.name + "</button></li>"; });
    document.getElementById("cateList").innerHTML = s;
 }
 
@@ -94,11 +103,47 @@ function cartPopulate(res)
 {
    let ar = JSON.parse(res);
    let s = "";
-   ar.forEach( (e, i) => { s += "<li>Name of product: " + e.id + "<li>Price: " + e.msrp
-   + "<li>Quantity: " + e.qty +
-   "</li>"; });
+   s += "<table>"
+   + "<tr>"
+   + "<th>Product Name</th>"
+   + "<th>Price</th>"
+   + "<th>Quantity</th>"
+   + "<th>Update Quantity</th>"
+   + "</tr>";
+   /*
+   ar.forEach( (e, i) => { s 
+    += "<tr>"
+    + "<td>Name of product: " + e.id + "</td>"
+    + "<td>Price: " + e.msrp + "</td>"
+    + "<td>Quantity: " + e.qty 
+    + "<input type=\"number\" id=\"modQuantity\"></td>"
+    + "</tr>"; });
+    */
    //" <button onclick=\"javascript:cartUpdate(" + e + ");\">Add to cart</button></li>"; });
-   document.getElementById("cartList").innerHTML = s;
+   document.getElementById("cartTable").innerHTML = s + tablePopulate(ar);
+}
+
+function tablePopulate(arr)
+{
+    let s = "";
+    arr.forEach( (e, i) => { s 
+        += "<tr>"
+        + "<td>" + e.name + "</td>"
+        + "<td>$" + e.msrp + "</td>"
+        + "<td>" + e.qty + "</td>"
+        + "<td><input type=\"number\" id=" + e.id + ">"
+        + "<button onclick=\'javascript:show(\"cartView\", " + JSON.stringify(e) + ", null, \"" + e.id + "\")'>Update</button>"
+        //+ "<button onclick=\'javascript:updateCart(" + e.id + ", " + JSON.stringify(e) + ")'>Update</button>"
+        + "</td>"
+        + "</tr>"; });
+    return s;
+}
+
+function updateCart(val, cartItem)
+{
+    let update = JSON.parse("\"" + cartItem + "\"");
+    update.qty = document.getElementById(val).value;
+    show(cartView, update);
 }
 
 function doAjax(address, handler)
@@ -112,5 +157,6 @@ function doAjax(address, handler)
       }
    }
    http.open("GET", address, true);
+   http.withCredentials = true;
    http.send();
 }
