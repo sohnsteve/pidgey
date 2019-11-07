@@ -235,54 +235,70 @@ const port = 0;
 
   app.use('/Cart', function(req, res)
   {
-    let item = req.query.item;
       //if there is no existing cart, create one
     if (!req.session.cart)  // req.getSession().getAttribute("cart")
 	  {
 		  req.session.cart = [];
     }
     let cart = req.session.cart;
-    if (item == null) //item not provided by client, return existing cart
+    if (req.query.item == null) //item not provided by client, return existing cart
     {
       res.writeHead(200, { 
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
       });
 			res.end(JSON.stringify(cart));
-    }
-      //negative quantity refers to item deletion from cart
-    else if (item.qty < 0)
-    {
-      cart.forEach((val, index) =>
-      {
-          //removing the first element is trivial with the shift method
-        if (val.id == item.id && index == 0)
-        {
-          cart.shift();
-        }
-          //removing last element is also trivial
-        else if (val.id == item.id && index == cart.length)
-        {
-          cart.pop();
-        }
-          //otherwise, must concatenate from two arrays
-          //deleting from middle of array is not trivial
-        else if (val.id == item.id)
-        {
-          let first = cart.slice(0, index);
-          let second = cart.slice(index + 1, cart.length + 1);
-          cart = first.concat(second);
-        }
-      });
     }
     else
     {
-      req.session.cart.push(item);
+      let item = JSON.parse(req.query.item);
+        //if given item has qty < 0, then this item is marked for deletion
+      if (item.qty < 0)
+      {
+        cart.forEach((val, index) =>
+        {
+            //removing the first element is trivial with the shift method
+          if (val.id == item.id && index == 0)
+          {
+           cart.shift();
+          }
+           //removing last element is also trivial
+          else if (val.id == item.id && index == cart.length - 1)
+          {
+            cart.pop();
+          }
+            //otherwise, must concatenate from two arrays
+            //deleting from middle of array is not trivial
+          else if (val.id == item.id)
+          {
+            let first = cart.slice(0, index);
+            let second = cart.slice(index + 1, cart.length + 1);
+            cart = first.concat(second);
+          }
+        });
+      }
+      else
+      {
+        let ar_counter = 0;
+        cart.forEach((val, index) =>
+        {
+          if (val.id == item.id)
+          {
+            val.qty = item.qty;
+            ar_counter++;
+          }
+        });
+        if (ar_counter == 0)
+        {
+          req.session.cart.push(item);
+        }
+      }
       res.writeHead(200, { 
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
       });
-			res.end(JSON.stringify(cart));
+      //res.end(JSON.parse(cart));
+      res.end(JSON.stringify(cart));
     }
   });
 
