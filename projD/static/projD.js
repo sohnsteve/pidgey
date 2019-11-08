@@ -1,5 +1,10 @@
-const INDEX_URL = 'http://red.eecs.yorku.ca:';
-const PORT = '43476';
+//ALWAYS START URL WITH: http://
+//after protocol, options include:
+//localhost
+//127.0.0.1
+//red.eecs.yorku.ca <- this will not work in prism, unsure why
+const INDEX_URL = 'http://127.0.0.1:';
+const PORT = '40047';
 var cateCode;
 var cateLabel;
 var prodCode;
@@ -59,8 +64,9 @@ function logPopulate(res)
 {
    logJSON = JSON.parse(res);
    let s = "";
-   logJSON.forEach( (e, i) => { s += "<li>" + e.name
-   + " <button onclick=\'javascript:show(\"cateView\", \"" + e.id + "\", \"" + e.name + "\")'>Select " + e.name + "</button></li>"; });
+   logJSON.forEach( (e, i) => { s 
+    += "<li>"
+    + "<a href=\'javascript:show(\"cateView\", \"" + e.id + "\", \"" + e.name + "\")'>" + e.name + "</a></li>"; });
    document.getElementById("logList").innerHTML = s;
 }
 
@@ -69,9 +75,9 @@ function catePopulate(res)
 {
    let ar = JSON.parse(res);
    let s = "";
-   ar.forEach( (e, i) => { s += "<li>" + e.name
+   ar.forEach( (e, i) => { s += "<li>"
    //" <button onclick=\'javascript:show(\"prodView\", \"" + e.id + "\", \"" + e.name + "\")'>Select " + e.name + "</button></li>"; });
-   + " <button onclick=\'javascript:show(\"prodView\", \"" + e.id + "\")'>Select " + e.name + "</button></li>"; });
+   + "<a href=\'javascript:show(\"prodView\", \"" + e.id + "\")'>" + e.name + "</a></li>"; });
    document.getElementById("cateList").innerHTML = s;
 }
 
@@ -108,7 +114,6 @@ function cartPopulate(res)
    + "<th>Product Name</th>"
    + "<th>Price</th>"
    + "<th>Quantity</th>"
-   + "<th>Update Quantity</th>"
    + "</tr>";
    /*
    ar.forEach( (e, i) => { s 
@@ -130,8 +135,7 @@ function tablePopulate(arr)
         += "<tr>"
         + "<td>" + e.name + "</td>"
         + "<td>$" + e.msrp + "</td>"
-        + "<td>" + e.qty + "</td>"
-        + "<td><input type=\"number\" id=" + e.id + ">"
+        + "<td><input type=\"number\" id=" + e.id + " value=\"" + e.qty + "\">"
         + "<button onclick=\'javascript:show(\"cartView\", " + JSON.stringify(e) + ", null, \"" + e.id + "\")'>Update</button>"
         //+ "<button onclick=\'javascript:updateCart(" + e.id + ", " + JSON.stringify(e) + ")'>Update</button>"
         + "</td>"
