@@ -157,7 +157,7 @@ const port = 0;
     let f = req.query.from;
     let t = req.query.to;
     https.get('https://maps.googleapis.com/maps/api/distancematrix/json?origins='+f+'&destinations='+t+
-      '&key=AIzaSyByat45S9vL1z91JabosN-IwOsJPb-F6ac&departure_time=now', (resp) => 
+      '&key=&departure_time=now', (resp) => 
     {
       let data = '';
       resp.on('data', (x) => 
